@@ -2,28 +2,14 @@ from pathlib import Path
 import os
 import dj_database_url
 
-# ----------------------------------
-# BASE DIRECTORY
-# ----------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ----------------------------------
-# SECRET KEY e DEBUG
-# ----------------------------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# ----------------------------------
-# Hosts e CSRF
-# ----------------------------------
 ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com", "localhost", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = [
-    "https://clone-twitter-n3cm.onrender.com",
-]
+CSRF_TRUSTED_ORIGINS = ["https://clone-twitter-n3cm.onrender.com"]
 
-# ----------------------------------
-# INSTALLED APPS
-# ----------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -38,12 +24,9 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = "users.User"
 
-# ----------------------------------
-# MIDDLEWARE
-# ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # servir estáticos em produção
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -52,9 +35,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# ----------------------------------
-# URLS
-# ----------------------------------
 ROOT_URLCONF = "clone_twitter.urls"
 
 TEMPLATES = [
@@ -74,11 +54,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "clone_twitter.wsgi.application"
 
-# ----------------------------------
 # DATABASE
-# ----------------------------------
 if DEBUG:
-    # Local: SQLite
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -86,7 +63,6 @@ if DEBUG:
         }
     }
 else:
-    # Produção: PostgreSQL (Render fornece DATABASE_URL automaticamente)
     DATABASES = {
         "default": dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
@@ -95,9 +71,7 @@ else:
         )
     }
 
-# ----------------------------------
 # PASSWORD VALIDATORS
-# ----------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -105,37 +79,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# ----------------------------------
-# LANGUAGE & TIMEZONE
-# ----------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# ----------------------------------
 # STATIC FILES
-# ----------------------------------
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
+STATICFILES_DIRS = [BASE_DIR / "static"]   # Onde estão seus arquivos CSS/JS originais
+STATIC_ROOT = BASE_DIR / "staticfiles"     # Onde o collectstatic copia tudo
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ----------------------------------
-# MEDIA FILES (Avatars, uploads)
-# ----------------------------------
+# MEDIA FILES
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# ----------------------------------
-# DEFAULT AUTO FIELD
-# ----------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ----------------------------------
-# LOGIN / LOGOUT REDIRECTS
-# ----------------------------------
+# LOGIN/LOGOUT
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/users/login/"
