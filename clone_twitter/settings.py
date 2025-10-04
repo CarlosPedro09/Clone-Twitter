@@ -41,7 +41,7 @@ AUTH_USER_MODEL = "users.User"
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # para servir estáticos
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # serve static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -125,7 +125,7 @@ MEDIA_URL = "/media/"
 if DEBUG:
     MEDIA_ROOT = BASE_DIR / "media"
 else:
-    MEDIA_ROOT = Path("/mnt/media")  # não vai sumir no Render
+    MEDIA_ROOT = Path("/mnt/media")  # Render: não vai sumir entre deploys
 
 # ----------------------------------
 # CLOUDINARY CONFIG

@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.http import JsonResponse
 from .models import Tweet, Comment
 from users.models import User
-from django.conf import settings
 
 @login_required
 def home(request):
@@ -20,8 +19,8 @@ def home(request):
 
     tweets_with_avatar = []
     for tweet in tweets:
-        # Avatar do usuário usando Cloudinary
-        avatar_url = tweet.user.avatar_url or settings.STATIC_URL + "default-avatar.png"
+        # Avatar do usuário, se existir
+        avatar_url = tweet.user.avatar_url if hasattr(tweet.user, "avatar_url") else None
 
         # Verifica se o usuário logado segue o autor do tweet
         is_following = tweet.user in request.user.following.all() if hasattr(request.user, "following") else False
