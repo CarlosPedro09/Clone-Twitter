@@ -20,18 +20,14 @@ def home(request):
 
     tweets_with_avatar = []
     for tweet in tweets:
-        # Garantir avatar_url sem quebrar
-        avatar_url = settings.STATIC_URL + "default-avatar.png"
-        if hasattr(tweet.user, "avatar") and tweet.user.avatar:
-            avatar_url = tweet.user.avatar.url
+        # Avatar do usuário usando Cloudinary
+        avatar_url = tweet.user.avatar_url or settings.STATIC_URL + "default-avatar.png"
 
-        # Garantir is_following sem quebrar
-        is_following = False
-        if hasattr(request.user, "following"):
-            is_following = tweet.user in request.user.following.all()
+        # Verifica se o usuário logado segue o autor do tweet
+        is_following = tweet.user in request.user.following.all() if hasattr(request.user, "following") else False
 
-        # Comentários usando related_name definido no model
-        comments = tweet.comment_set.all().order_by("created_at")  # ou tweet.comments.all() se related_name="comments"
+        # Comentários
+        comments = tweet.comments.all().order_by("created_at")  # related_name="comments" no model Comment
 
         tweets_with_avatar.append({
             "tweet": tweet,
@@ -65,7 +61,6 @@ def comment_tweet(request, tweet_id):
         if content:
             comment = Comment.objects.create(tweet=tweet, user=request.user, content=content)
             
-            # Se for AJAX, retorna JSON
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({
                     "username": comment.user.username,
@@ -73,7 +68,6 @@ def comment_tweet(request, tweet_id):
                     "created_at": comment.created_at.strftime("%d/%m/%Y %H:%M"),
                 })
             
-            # Se não for AJAX, adiciona mensagem
             messages.success(request, "Comentário enviado com sucesso!")
             return redirect(request.META.get('HTTP_REFERER', 'tweets:home'))
     
@@ -88,7 +82,7 @@ def follow_user(request, user_id):
         return redirect(request.META.get('HTTP_REFERER', 'tweets:home'))
 
     if hasattr(request.user, "following"):
-        if target_user in request.user.following.all():
+        if request.user.following.filter(id=target_user.id).exists():
             request.user.following.remove(target_user)
         else:
             request.user.following.add(target_user)

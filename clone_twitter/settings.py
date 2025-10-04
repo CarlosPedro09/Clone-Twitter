@@ -1,9 +1,6 @@
 from pathlib import Path
 import os
-import dj_database_url
 import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 # ----------------------------------
 # BASE DIRECTORY
@@ -19,8 +16,8 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 # ----------------------------------
 # Hosts e CSRF
 # ----------------------------------
-ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com", "localhost", "127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = ["https://clone-twitter-n3cm.onrender.com"]
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host != "localhost" and host != "127.0.0.1"]
 
 # ----------------------------------
 # INSTALLED APPS
@@ -32,7 +29,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_extensions",
     "cloudinary",
     "users",
     "tweets",
@@ -45,7 +41,7 @@ AUTH_USER_MODEL = "users.User"
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # produção
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -87,6 +83,7 @@ if DEBUG:
         }
     }
 else:
+    import dj_database_url
     DATABASES = {
         "default": dj_database_url.config(
             default=os.environ.get("DATABASE_URL"),
@@ -122,7 +119,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
-# MEDIA FILES (Avatars, uploads)
+# MEDIA FILES (Cloudinary em produção)
 # ----------------------------------
 if DEBUG:
     MEDIA_ROOT = BASE_DIR / "media"
@@ -143,13 +140,13 @@ if not DEBUG:
     )
 
 # ----------------------------------
-# DEFAULT AUTO FIELD
-# ----------------------------------
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# ----------------------------------
 # LOGIN / LOGOUT REDIRECTS
 # ----------------------------------
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/users/login/"
+
+# ----------------------------------
+# DEFAULT AUTO FIELD
+# ----------------------------------
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
