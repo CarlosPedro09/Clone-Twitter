@@ -4,20 +4,17 @@
 
 <div class="form-container">
     <h2>Editar Perfil</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="profile-form">
         {% csrf_token %}
 
         <!-- Preview do avatar -->
         <div class="avatar-container">
-            {% if profile_user.avatar %}
-                <img src="{{ profile_user.avatar.url }}" alt="Avatar" class="avatar-preview">
-            {% else %}
-                <img src="{% static 'default-avatar.png' %}" alt="Avatar" class="avatar-preview">
-            {% endif %}
+            <img src="{% if profile_user.avatar %}{{ profile_user.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}" 
+                 class="avatar-preview" id="avatar-preview">
         </div>
 
         <!-- Botão para escolher arquivo -->
-        <input type="file" name="avatar" accept="image/*">
+        <input type="file" name="avatar" accept="image/*" id="input-avatar">
 
         <!-- Campos de edição -->
         <input type="text" name="username" placeholder="Usuário" value="{{ profile_user.username }}" required>
@@ -38,11 +35,8 @@
     {% for item in tweets %}
     <div class="tweet" id="tweet-{{ item.tweet.id }}">
         <div class="tweet-header">
-            {% if item.tweet.user.avatar %}
-                <img src="{{ item.tweet.user.avatar.url }}" alt="Avatar" class="avatar">
-            {% else %}
-                <img src="{% static 'default-avatar.png' %}" alt="Avatar" class="avatar">
-            {% endif %}
+            <img src="{% if item.tweet.user.avatar %}{{ item.tweet.user.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}" 
+                 class="avatar">
             <strong>{{ item.tweet.user.username }}</strong>
         </div>
 
@@ -80,7 +74,7 @@
     margin-bottom: 10px;
 }
 
-.avatar-preview {
+.avatar-preview, .tweet-header .avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -89,9 +83,7 @@
     border: 2px solid #1da1f2;
 }
 
-.form-container input[type="file"] {
-    margin-bottom: 10px;
-}
+.form-container input[type="file"] { margin-bottom: 10px; }
 
 .form-container input, .form-container button {
     padding: 10px;
@@ -102,10 +94,7 @@
     width: 100%;
 }
 
-.form-container input:focus {
-    border-color: #1da1f2;
-    outline: none;
-}
+.form-container input:focus { border-color: #1da1f2; outline: none; }
 
 .form-container button {
     background-color: #1da1f2;
@@ -114,10 +103,7 @@
     cursor: pointer;
     transition: 0.3s;
 }
-
-.form-container button:hover {
-    background-color: #0d95e8;
-}
+.form-container button:hover { background-color: #0d95e8; }
 
 .profile-stats {
     text-align: center;
@@ -163,15 +149,24 @@
 </style>
 
 <script>
-const inputAvatar = document.querySelector('input[name="avatar"]');
-const previewImg = document.querySelector('.avatar-preview');
+// Preview do avatar e atualização imediata no feed
+const inputAvatar = document.getElementById('input-avatar');
+const previewImg = document.getElementById('avatar-preview');
 
 inputAvatar.addEventListener('change', function() {
     const file = this.files[0];
-    if (file) {
+    if(file){
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function(e){
             previewImg.src = e.target.result;
+
+            // Atualiza todos os avatars do feed do usuário logado
+            document.querySelectorAll(`.tweet-header img`).forEach(img => {
+                const usernameElem = img.nextElementSibling;
+                if(usernameElem && usernameElem.textContent === "{{ profile_user.username }}"){
+                    img.src = e.target.result;
+                }
+            });
         }
         reader.readAsDataURL(file);
     }

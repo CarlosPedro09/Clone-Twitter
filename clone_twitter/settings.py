@@ -14,7 +14,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # ----------------------------------
-# HOSTS e CSRF
+# Hosts e CSRF
 # ----------------------------------
 ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com", "localhost", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ["https://clone-twitter-n3cm.onrender.com"]
@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_extensions",
+    "cloudinary",
+    "django_cloudinary_storage",
     "users",
     "tweets",
 ]
@@ -41,7 +43,7 @@ AUTH_USER_MODEL = "users.User"
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # serve arquivos estáticos
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -51,7 +53,7 @@ MIDDLEWARE = [
 ]
 
 # ----------------------------------
-# URLS e TEMPLATES
+# URLS
 # ----------------------------------
 ROOT_URLCONF = "clone_twitter.urls"
 
@@ -118,10 +120,24 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
-# MEDIA FILES
+# MEDIA FILES (Avatars, uploads)
 # ----------------------------------
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+if DEBUG:
+    MEDIA_ROOT = BASE_DIR / "media"
+    MEDIA_URL = "/media/"
+else:
+    # Opção 1: Disco Persistente do Render
+    MEDIA_ROOT = Path("/mnt/media")
+    MEDIA_URL = "/media/"
+
+# Se quiser Cloudinary em produção (melhor para avatars)
+if not DEBUG:
+    DEFAULT_FILE_STORAGE = "django_cloudinary_storage.storage.MediaCloudinaryStorage"
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+    }
 
 # ----------------------------------
 # DEFAULT AUTO FIELD
@@ -129,7 +145,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ----------------------------------
-# LOGIN / LOGOUT
+# LOGIN / LOGOUT REDIRECTS
 # ----------------------------------
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/"
