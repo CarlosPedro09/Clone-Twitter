@@ -10,7 +10,7 @@ from django.conf import settings
 def home(request):
     # Criar tweet
     if request.method == "POST" and "content" in request.POST:
-        content = request.POST.get("content").strip()
+        content = request.POST.get("content", "").strip()
         if content:
             Tweet.objects.create(user=request.user, content=content)
             messages.success(request, "Seu tweet foi publicado com sucesso!")
@@ -20,8 +20,16 @@ def home(request):
 
     tweets_with_avatar = []
     for tweet in tweets:
-        avatar_url = tweet.user.avatar.url if tweet.user.avatar else settings.STATIC_URL + "default-avatar.png"
-        is_following = tweet.user in request.user.following.all()
+        # Garantir avatar_url sem quebrar
+        avatar_url = settings.STATIC_URL + "default-avatar.png"
+        if hasattr(tweet.user, "avatar") and tweet.user.avatar:
+            avatar_url = tweet.user.avatar.url
+
+        # Garantir is_following sem quebrar
+        is_following = False
+        if hasattr(request.user, "following"):
+            is_following = tweet.user in request.user.following.all()
+
         # Comentários usando related_name definido no model
         comments = tweet.comment_set.all().order_by("created_at")  # ou tweet.comments.all() se related_name="comments"
 
@@ -79,9 +87,10 @@ def follow_user(request, user_id):
         messages.error(request, "Você não pode seguir a si mesmo.")
         return redirect(request.META.get('HTTP_REFERER', 'tweets:home'))
 
-    if target_user in request.user.following.all():
-        request.user.following.remove(target_user)
-    else:
-        request.user.following.add(target_user)
+    if hasattr(request.user, "following"):
+        if target_user in request.user.following.all():
+            request.user.following.remove(target_user)
+        else:
+            request.user.following.add(target_user)
 
     return redirect(request.META.get('HTTP_REFERER', 'tweets:home'))
