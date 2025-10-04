@@ -165,6 +165,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(res => res.json())
             .then(data => {
                 const commentsDiv = document.getElementById(`comments-${tweetId}`);
+
+                // Remove "Nenhum comentário ainda." se existir
+                const emptyMsg = commentsDiv.querySelector('p.comment');
+                if (emptyMsg && emptyMsg.textContent.includes("Nenhum comentário ainda")) {
+                    emptyMsg.remove();
+                }
+
                 const newComment = document.createElement('p');
                 newComment.className = 'comment';
                 newComment.innerHTML = `<strong>${data.username}</strong>: ${data.content}`;
