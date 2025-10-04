@@ -1,19 +1,28 @@
 from pathlib import Path
 import os
 
+# ----------------------------------
+# BASE DIRECTORY
+# ----------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-your-secret-key"
-DEBUG = False  # 🔥 No deploy, deixe False
-ALLOWED_HOSTS = ['*']
+# ----------------------------------
+# SECRET KEY e DEBUG
+# ----------------------------------
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
+DEBUG = False  # Sempre False em produção
 
-# CSRF (Render usa HTTPS, pode precisar configurar domínio depois)
+# ----------------------------------
+# Hosts e CSRF
+# ----------------------------------
+ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com"]  # Substitua pelo seu domínio Render
 CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8000",
-    "https://seu-app.onrender.com"  # 🔥 troque pelo domínio do Render
+    "https://clone-twitter-n3cm.onrender.com",
 ]
 
-# Apps
+# ----------------------------------
+# INSTALLED APPS
+# ----------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -28,6 +37,9 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'users.User'
 
+# ----------------------------------
+# MIDDLEWARE
+# ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -38,6 +50,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# ----------------------------------
+# URLS
+# ----------------------------------
 ROOT_URLCONF = "clone_twitter.urls"
 
 TEMPLATES = [
@@ -57,7 +72,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "clone_twitter.wsgi.application"
 
-# Database (SQLite por enquanto)
+# ----------------------------------
+# DATABASE (SQLite por enquanto)
+# ----------------------------------
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -65,7 +82,21 @@ DATABASES = {
     }
 }
 
-# Password validators
+# ⚠️ Se quiser persistência real, use PostgreSQL:
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.environ.get("POSTGRES_DB"),
+#         "USER": os.environ.get("POSTGRES_USER"),
+#         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+#         "HOST": os.environ.get("POSTGRES_HOST"),
+#         "PORT": os.environ.get("POSTGRES_PORT", 5432),
+#     }
+# }
+
+# ----------------------------------
+# PASSWORD VALIDATORS
+# ----------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -73,23 +104,43 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# ----------------------------------
+# LANGUAGE & TIMEZONE
+# ----------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ----------------------------------
+# STATIC FILES
+# ----------------------------------
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para collectstatic no Render
+STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic vai gerar aqui no Render
 
-# Media files (avatars)
+# ----------------------------------
+# MEDIA FILES (Avatars, uploads)
+# ----------------------------------
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# ----------------------------------
+# DEFAULT AUTO FIELD
+# ----------------------------------
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# URLs de redirecionamento
+# ----------------------------------
+# LOGIN / LOGOUT REDIRECTS
+# ----------------------------------
 LOGIN_URL = "/users/login/"
-LOGIN_REDIRECT_URL = "/"       # Para onde vai após login bem-sucedido
+LOGIN_REDIRECT_URL = "/"       # Após login bem-sucedido
 LOGOUT_REDIRECT_URL = "/users/login/"
+
+# ----------------------------------
+# OBSERVAÇÕES IMPORTANTES PARA DEPLOY
+# ----------------------------------
+# 1. Antes de rodar no Render, rode: python manage.py collectstatic --noinput
+# 2. Gunicorn será usado como servidor: gunicorn clone_twitter.wsgi
+# 3. SQLite funciona, mas alterações no container não são persistentes. Para produção real, use PostgreSQL.
+# 4. Variáveis sensíveis (SECRET_KEY, DB credentials) devem ser configuradas no Render → Environment → Environment Variables
