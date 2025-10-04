@@ -1,14 +1,17 @@
 from pathlib import Path
-import os  # necessário para STATIC_ROOT
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-your-secret-key"
-DEBUG = True
-ALLOWED_HOSTS = ['*']  # atualizado para aceitar qualquer host
+DEBUG = False  # 🔥 No deploy, deixe False
+ALLOWED_HOSTS = ['*']
 
-# Confiança para CSRF (evita 403 ao fazer POST no dev server)
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+# CSRF (Render usa HTTPS, pode precisar configurar domínio depois)
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "https://seu-app.onrender.com"  # 🔥 troque pelo domínio do Render
+]
 
 # Apps
 INSTALLED_APPS = [
@@ -18,7 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'django_extensions',
+    "django_extensions",
     "users",
     "tweets",
 ]
@@ -54,7 +57,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "clone_twitter.wsgi.application"
 
-# Database (SQLite)
+# Database (SQLite por enquanto)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -78,7 +81,7 @@ USE_TZ = True
 # Static files
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # atualizado para collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Para collectstatic no Render
 
 # Media files (avatars)
 MEDIA_URL = "/media/"
@@ -89,4 +92,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # URLs de redirecionamento
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = "/"       # Para onde vai após login bem-sucedido
-LOGOUT_REDIRECT_URL = "/users/login/"  # Para onde vai após logout
+LOGOUT_REDIRECT_URL = "/users/login/"
