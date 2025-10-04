@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 # ----------------------------------
 # BASE DIRECTORY
@@ -10,12 +11,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET KEY e DEBUG
 # ----------------------------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
-DEBUG = False  # Sempre False em produção
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # ----------------------------------
 # Hosts e CSRF
 # ----------------------------------
-ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com"]  # Substitua pelo seu domínio Render
+ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com", "localhost", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = [
     "https://clone-twitter-n3cm.onrender.com",
 ]
@@ -35,14 +36,14 @@ INSTALLED_APPS = [
     "tweets",
 ]
 
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
 # ----------------------------------
 # MIDDLEWARE
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # <-- adicionado
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # servir estáticos em produção
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -74,26 +75,25 @@ TEMPLATES = [
 WSGI_APPLICATION = "clone_twitter.wsgi.application"
 
 # ----------------------------------
-# DATABASE (SQLite por enquanto)
+# DATABASE
 # ----------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    # Local: SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
-
-# ⚠️ Se quiser persistência real, use PostgreSQL:
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.environ.get("POSTGRES_DB"),
-#         "USER": os.environ.get("POSTGRES_USER"),
-#         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
-#         "HOST": os.environ.get("POSTGRES_HOST"),
-#         "PORT": os.environ.get("POSTGRES_PORT", 5432),
-#     }
-# }
+else:
+    # Produção: PostgreSQL (Render fornece DATABASE_URL automaticamente)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=os.environ.get("DATABASE_URL"),
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
 
 # ----------------------------------
 # PASSWORD VALIDATORS
@@ -118,9 +118,8 @@ USE_TZ = True
 # ----------------------------------
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic vai gerar aqui no Render
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# WhiteNoise: servir arquivos estáticos em produção
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
@@ -138,13 +137,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # LOGIN / LOGOUT REDIRECTS
 # ----------------------------------
 LOGIN_URL = "/users/login/"
-LOGIN_REDIRECT_URL = "/"       # Após login bem-sucedido
+LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/users/login/"
-
-# ----------------------------------
-# OBSERVAÇÕES IMPORTANTES PARA DEPLOY
-# ----------------------------------
-# 1. Antes de rodar no Render, rode: python manage.py collectstatic --noinput
-# 2. Gunicorn será usado como servidor: gunicorn clone_twitter.wsgi
-# 3. SQLite funciona, mas alterações no container não são persistentes. Para produção real, use PostgreSQL.
-# 4. Variáveis sensíveis (SECRET_KEY, DB credentials) devem ser configuradas no Render → Environment → Environment Variables
