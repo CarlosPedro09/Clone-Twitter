@@ -16,8 +16,8 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 # ----------------------------------
 # Hosts e CSRF
 # ----------------------------------
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host != "localhost" and host != "127.0.0.1"]
+ALLOWED_HOSTS = ["clone-twitter-n3cm.onrender.com", "localhost", "127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = ["https://clone-twitter-n3cm.onrender.com"]
 
 # ----------------------------------
 # INSTALLED APPS
@@ -29,9 +29,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "cloudinary",
     "users",
     "tweets",
+    "cloudinary",
 ]
 
 AUTH_USER_MODEL = "users.User"
@@ -41,7 +41,7 @@ AUTH_USER_MODEL = "users.User"
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # produção
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # para servir estáticos
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -119,23 +119,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
-# MEDIA FILES (Cloudinary em produção)
+# MEDIA FILES
 # ----------------------------------
+MEDIA_URL = "/media/"
 if DEBUG:
     MEDIA_ROOT = BASE_DIR / "media"
-    MEDIA_URL = "/media/"
 else:
-    MEDIA_ROOT = Path("/mnt/media")
-    MEDIA_URL = "/media/"
+    MEDIA_ROOT = Path("/mnt/media")  # não vai sumir no Render
 
 # ----------------------------------
-# CLOUDINARY CONFIG (produção)
+# CLOUDINARY CONFIG
 # ----------------------------------
 if not DEBUG:
     cloudinary.config(
-        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        api_key=os.environ.get('CLOUDINARY_API_KEY'),
-        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.environ.get("CLOUDINARY_API_KEY"),
+        api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
         secure=True
     )
 
