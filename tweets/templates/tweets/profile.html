@@ -9,7 +9,7 @@
 
         <!-- Preview do avatar -->
         <div class="avatar-container">
-            <img src="{% if profile_user.avatar %}{{ profile_user.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}" 
+            <img src="{{ profile_user.avatar }}" 
                  class="avatar-preview" id="avatar-preview" data-username="{{ profile_user.username }}">
         </div>
 
