@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -66,7 +66,6 @@ def profile_view(request, username=None):
     Mostra o perfil do usuário.
     Se username não for passado, mostra o perfil do usuário logado.
     Permite atualizar username, senha e avatar.
-    Adiciona contagem de seguidores/seguindo e comentários dos tweets.
     """
     if username:
         profile_user = get_object_or_404(User, username=username)
@@ -81,18 +80,21 @@ def profile_view(request, username=None):
         new_password = request.POST.get("password").strip()
         avatar_file = request.FILES.get("avatar")
 
+        # Atualiza username
         if new_username and new_username != profile_user.username:
             if User.objects.filter(username=new_username).exclude(pk=profile_user.pk).exists():
                 messages.error(request, "Nome de usuário já está em uso.")
             else:
                 profile_user.username = new_username
 
+        # Atualiza senha
         if new_password:
             profile_user.set_password(new_password)
+            update_session_auth_hash(request, profile_user)  # mantém login ativo
 
+        # Atualiza avatar no Cloudinary
         if avatar_file:
-            # Cloudinary já vai salvar automaticamente se estiver ativo
-            profile_user.avatar = avatar_file
+            profile_user.set_avatar(avatar_file)  # ✅ usa o método do model
 
         profile_user.save()
         messages.success(request, "Perfil atualizado com sucesso.")
@@ -102,25 +104,18 @@ def profile_view(request, username=None):
     tweets = profile_user.tweet_set.all().order_by("-created_at") if hasattr(profile_user, "tweet_set") else []
 
     # Contagem de seguidores e seguindo
-    followers_count = User.objects.filter(following=profile_user).count()  # quem segue o usuário
-    following_count = profile_user.following.count() if hasattr(profile_user, "following") else 0  # quem o usuário segue
+    followers_count = User.objects.filter(following=profile_user).count()
+    following_count = profile_user.following.count() if hasattr(profile_user, "following") else 0
 
-    # Preparar tweets com comentários e URL do avatar
+    # Monta tweets com avatar
     tweets_with_comments = []
     for tweet in tweets:
         comments = tweet.comment_set.all().order_by("created_at") if hasattr(tweet, "comment_set") else []
 
-        # Adicionar URL do avatar do usuário que postou o tweet
-        if tweet.user.avatar:
-            avatar_url = tweet.user.avatar.url
-        else:
-            from django.templatetags.static import static
-            avatar_url = static("default-avatar.png")
-
         tweets_with_comments.append({
             "tweet": tweet,
             "comments": comments,
-            "avatar_url": avatar_url,
+            "avatar_url": tweet.user.avatar,  # ✅ usa propriedade do model
             "is_following": request.user.following.filter(pk=tweet.user.pk).exists()
         })
 

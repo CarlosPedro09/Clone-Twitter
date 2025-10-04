@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # ----------------------------------
 # BASE DIRECTORY
@@ -32,8 +34,10 @@ INSTALLED_APPS = [
     "users",
     "tweets",
     "cloudinary",
+    "cloudinary_storage",  # ✅ Adiciona integração de storage
 ]
 
+# Modelo de usuário customizado
 AUTH_USER_MODEL = "users.User"
 
 # ----------------------------------
@@ -41,7 +45,7 @@ AUTH_USER_MODEL = "users.User"
 # ----------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # serve static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Serve static files
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -105,8 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # ----------------------------------
 # LANGUAGE & TIMEZONE
 # ----------------------------------
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = "pt-br"
+TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
@@ -119,24 +123,27 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ----------------------------------
-# MEDIA FILES
+# MEDIA FILES (Cloudinary)
 # ----------------------------------
-MEDIA_URL = "/media/"
+# ⚙️ Se Cloudinary estiver configurado, ele será usado para armazenar os uploads.
+# Localmente, ainda usa pasta /media para facilitar testes.
+
 if DEBUG:
+    MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 else:
-    MEDIA_ROOT = Path("/mnt/media")  # Render: não vai sumir entre deploys
+    MEDIA_URL = "https://res.cloudinary.com/" + os.environ.get("CLOUDINARY_CLOUD_NAME", "") + "/image/upload/"
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ----------------------------------
 # CLOUDINARY CONFIG
 # ----------------------------------
-if not DEBUG:
-    cloudinary.config(
-        cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-        api_key=os.environ.get("CLOUDINARY_API_KEY"),
-        api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-        secure=True
-    )
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
 # ----------------------------------
 # LOGIN / LOGOUT REDIRECTS
