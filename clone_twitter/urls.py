@@ -5,9 +5,9 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('tweets.urls', namespace='tweets')),  # <-- aqui
+    path('', include('tweets.urls', namespace='tweets')),
     path('users/', include('users.urls')),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve arquivos de mídia tanto em DEBUG quanto em produção
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

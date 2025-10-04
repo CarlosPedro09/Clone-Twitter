@@ -8,7 +8,7 @@
         {% csrf_token %}
 
         <!-- Preview do avatar -->
-        <div style="text-align:center; margin-bottom:10px;">
+        <div class="avatar-container">
             {% if profile_user.avatar %}
                 <img src="{{ profile_user.avatar.url }}" alt="Avatar" class="avatar-preview">
             {% else %}
@@ -28,7 +28,7 @@
 </div>
 
 <!-- Contagem de seguidores e seguindo -->
-<div class="profile-stats" style="text-align:center; margin-top:15px;">
+<div class="profile-stats">
     <span>Seguindo: {{ following_count }}</span> |
     <span>Seguidores: {{ followers_count }}</span>
 </div>
@@ -75,16 +75,23 @@
 </div>
 
 <style>
+.avatar-container {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
 .avatar-preview {
     width: 100px;
     height: 100px;
     border-radius: 50%;
     object-fit: cover;
-    display: block;
-    margin: 0 auto 10px;
+    display: inline-block;
+    border: 2px solid #1da1f2;
 }
 
-.form-container input[type="file"] { margin-bottom: 10px; }
+.form-container input[type="file"] {
+    margin-bottom: 10px;
+}
 
 .form-container input, .form-container button {
     padding: 10px;
@@ -95,7 +102,11 @@
     width: 100%;
 }
 
-.form-container input:focus { border-color: #1da1f2; outline: none; }
+.form-container input:focus {
+    border-color: #1da1f2;
+    outline: none;
+}
+
 .form-container button {
     background-color: #1da1f2;
     color: #fff;
@@ -103,15 +114,52 @@
     cursor: pointer;
     transition: 0.3s;
 }
-.form-container button:hover { background-color: #0d95e8; }
 
-.profile-stats span { font-weight: bold; margin: 0 5px; }
+.form-container button:hover {
+    background-color: #0d95e8;
+}
 
-.tweets { display: flex; flex-direction: column; gap: 15px; margin-top:20px; }
-.tweet { background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.tweet-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.comment { font-size: 0.9em; color: #555; margin-left: 50px; margin-top: 5px; }
-.like-btn { cursor: pointer; background:none; border:none; color:#1da1f2; margin-bottom:5px; }
+.profile-stats {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 15px;
+}
+
+.tweets {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.tweet {
+    background: #fff;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.tweet-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.comment {
+    font-size: 0.9em;
+    color: #555;
+    margin-left: 50px;
+    margin-top: 5px;
+}
+
+.like-btn {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #1da1f2;
+    margin-bottom: 5px;
+}
 </style>
 
 <script>
