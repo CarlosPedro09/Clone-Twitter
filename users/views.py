@@ -14,7 +14,9 @@ def register_view(request):
         username = request.POST.get("username").strip()
         email = request.POST.get("email").strip()
         password = request.POST.get("password").strip()
+        avatar_file = request.FILES.get("avatar")  # captura avatar enviado
 
+        # Valida se usuário ou email já existem
         if User.objects.filter(username=username).exists():
             messages.error(request, "Usuário já existe!")
             return redirect("register")
@@ -22,7 +24,13 @@ def register_view(request):
             messages.error(request, "Email já cadastrado!")
             return redirect("register")
 
+        # Cria usuário
         user = User.objects.create_user(username=username, email=email, password=password)
+
+        # Se enviou avatar, salva usando o método do model
+        if avatar_file:
+            user.set_avatar(avatar_file)
+
         user.save()
         messages.success(request, "Conta criada com sucesso! Faça login.")
         return redirect("login")

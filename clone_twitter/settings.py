@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ----------------------------------
 # SECRET KEY e DEBUG
 # ----------------------------------
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
-DEBUG = True
+SECRET_KEY = os.environ["SECRET_KEY"]  # ⚠️ obrigatório em produção
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # ----------------------------------
 # Hosts e CSRF
@@ -122,14 +122,11 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # ----------------------------------
 # MEDIA FILES (Cloudinary)
 # ----------------------------------
-# ⚙️ Se Cloudinary estiver configurado, ele será usado para armazenar os uploads.
-# Localmente, ainda usa pasta /media para facilitar testes.
-
 if DEBUG:
     MEDIA_URL = "/media/"
     MEDIA_ROOT = BASE_DIR / "media"
 else:
-    MEDIA_URL = "https://res.cloudinary.com/" + os.environ.get("CLOUDINARY_CLOUD_NAME", "") + "/image/upload/"
+    MEDIA_URL = f"https://res.cloudinary.com/{os.environ.get('CLOUDINARY_CLOUD_NAME')}/image/upload/"
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ----------------------------------
