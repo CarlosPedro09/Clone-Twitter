@@ -1,8 +1,6 @@
 from pathlib import Path
 import os
 import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 # ----------------------------------
 # BASE DIRECTORY
@@ -34,7 +32,6 @@ INSTALLED_APPS = [
     "users",
     "tweets",
     "cloudinary",
-    "cloudinary_storage",  # ✅ Adiciona integração de storage
 ]
 
 # Modelo de usuário customizado
