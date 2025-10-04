@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET KEY e DEBUG
 # ----------------------------------
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-default-key")
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG = True
 
 # ----------------------------------
 # Hosts e CSRF
