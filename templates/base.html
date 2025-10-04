@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Clone Twitter</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <div class="page-container">
+        <header>
+            <div class="header-left"></div> <!-- Espaço vazio -->
+            <h1 class="page-title">Clone Twitter</h1>
+            <nav class="top-nav">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'tweets:home' %}">Home</a>
+                    <a href="{% url 'profile' username=user.username %}">Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Login</a>
+                    <a href="{% url 'register' %}">Register</a>
+                {% endif %}
+            </nav>
+        </header>    
+
+        <main>
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="message {{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer>
+            &copy; 2025 Clone Twitter. Carlos Pedro. Todos os direitos reservados.
+        </footer>
+    </div>
+
+    <script>
+        // Mensagens desaparecem após 5 segundos com fade
+        setTimeout(() => {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 1000); // remove após 1s de fade
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

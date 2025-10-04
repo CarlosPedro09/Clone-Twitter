@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="page-container">
+
+    <!-- Formulário para criar tweet -->
+    <div class="form-container">
+        <h2>Feed</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="O que está acontecendo?" required>
+            <button type="submit">Tweetar</button>
+        </form>
+    </div>
+
+    <!-- Mensagens de sucesso/erro -->
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <!-- Lista de tweets -->
+    <main>
+        <div class="tweets">
+            {% for item in tweets %}
+                <div class="tweet">
+                    <div class="tweet-header">
+                        <img src="{{ item.avatar_url }}" alt="Avatar" class="avatar">
+                        <strong>{{ item.tweet.user.username }}</strong>
+                        <span class="tweet-date">{{ item.tweet.created_at|date:"d/m/Y H:i" }}</span>
+
+                        <!-- Seguir/Deixar de seguir -->
+                        {% if user != item.tweet.user %}
+                            <form method="post" action="{% url 'tweets:follow_user' item.tweet.user.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                {% if item.is_following %}
+                                    <button type="submit" class="btn-unfollow">Deixar de seguir</button>
+                                {% else %}
+                                    <button type="submit" class="btn-follow">Seguir</button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <div class="tweet-content">
+                        {{ item.tweet.content }}
+                    </div>
+
+                    <div class="tweet-actions">
+                        <button class="like-btn" data-tweet-id="{{ item.tweet.id }}">❤️ <span class="like-count">{{ item.tweet.likes.count }}</span></button>
+
+                        <form class="comment-form" data-tweet-id="{{ item.tweet.id }}" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="text" name="content" placeholder="Comentar..." required>
+                            <button type="submit">💬</button>
+                        </form>
+                    </div>
+
+                    <!-- Lista de comentários -->
+                    <div class="comments-list" id="comments-{{ item.tweet.id }}">
+                        {% for comment in item.comments %}
+                            <p class="comment"><strong>{{ comment.user.username }}</strong>: {{ comment.content }}</p>
+                        {% empty %}
+                            <p class="comment">Nenhum comentário ainda.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <p>Nenhum tweet ainda. Seja o primeiro!</p>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<!-- Estilo dos botões -->
+<style>
+.btn-follow {
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.btn-follow:hover { background-color: #0d95e8; }
+
+.btn-unfollow {
+    background-color: #ccc;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.btn-unfollow:hover { background-color: #999; }
+
+.like-btn {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #1da1f2;
+    margin-right: 10px;
+}
+.comment { margin-left: 20px; margin-top: 5px; }
+</style>
+
+<!-- AJAX para likes e comentários -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Likes
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tweetId = btn.dataset.tweetId;
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const likeCountSpan = btn.querySelector('.like-count');
+
+            fetch(`/tweet/${tweetId}/like/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                likeCountSpan.textContent = data.likes_count;
+            })
+            .catch(() => alert('Erro ao curtir.'));
+        });
+    });
+
+    // Comentários
+    document.querySelectorAll('.comment-form').forEach(form => {
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const tweetId = form.dataset.tweetId;
+            const input = form.querySelector('input[name="content"]');
+            const content = input.value.trim();
+            if(!content) return;
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+            fetch(`/tweet/${tweetId}/comment/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `content=${encodeURIComponent(content)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                const commentsDiv = document.getElementById(`comments-${tweetId}`);
+                const newComment = document.createElement('p');
+                newComment.className = 'comment';
+                newComment.innerHTML = `<strong>${data.username}</strong>: ${data.content}`;
+                commentsDiv.appendChild(newComment);
+                input.value = '';
+            })
+            .catch(() => alert('Erro ao enviar comentário.'));
+        });
+    });
+});
+</script>
+{% endblock %}

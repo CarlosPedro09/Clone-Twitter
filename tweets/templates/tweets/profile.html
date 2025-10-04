@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    <h2>Editar Perfil</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Preview do avatar -->
+        <div style="text-align:center; margin-bottom:10px;">
+            {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" alt="Avatar" class="avatar-preview">
+            {% else %}
+                <img src="{% static 'default-avatar.png' %}" alt="Avatar" class="avatar-preview">
+            {% endif %}
+        </div>
+
+        <!-- Botão para escolher arquivo -->
+        <input type="file" name="avatar" accept="image/*">
+
+        <!-- Campos de edição -->
+        <input type="text" name="username" placeholder="Usuário" value="{{ profile_user.username }}" required>
+        <input type="password" name="password" placeholder="Senha">
+
+        <button type="submit">Salvar Alterações</button>
+    </form>
+</div>
+
+<!-- Contagem de seguidores e seguindo -->
+<div class="profile-stats" style="text-align:center; margin-top:15px;">
+    <span>Seguindo: {{ following_count }}</span> |
+    <span>Seguidores: {{ followers_count }}</span>
+</div>
+
+<!-- Tweets do usuário -->
+<div class="tweets">
+    {% for item in tweets %}
+    <div class="tweet" id="tweet-{{ item.tweet.id }}">
+        <div class="tweet-header">
+            {% if item.tweet.user.avatar %}
+                <img src="{{ item.tweet.user.avatar.url }}" alt="Avatar" class="avatar">
+            {% else %}
+                <img src="{% static 'default-avatar.png' %}" alt="Avatar" class="avatar">
+            {% endif %}
+            <strong>{{ item.tweet.user.username }}</strong>
+        </div>
+
+        <p>{{ item.tweet.content }}</p>
+
+        <!-- Likes -->
+        <div>
+            <button class="like-btn" data-tweet-id="{{ item.tweet.id }}">
+                Curtiu <span class="like-count">{{ item.tweet.likes.count }}</span>
+            </button>
+        </div>
+
+        <!-- Comentários -->
+        <div class="comments" id="comments-{{ item.tweet.id }}">
+            {% for comment in item.comments %}
+                <div class="comment">
+                    <strong>{{ comment.user.username }}:</strong> {{ comment.content }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Form para adicionar comentário -->
+        <form class="comment-form" data-tweet-id="{{ item.tweet.id }}">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Adicione um comentário..." required>
+            <button type="submit">Comentar</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 10px;
+}
+
+.form-container input[type="file"] { margin-bottom: 10px; }
+
+.form-container input, .form-container button {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+}
+
+.form-container input:focus { border-color: #1da1f2; outline: none; }
+.form-container button {
+    background-color: #1da1f2;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.form-container button:hover { background-color: #0d95e8; }
+
+.profile-stats span { font-weight: bold; margin: 0 5px; }
+
+.tweets { display: flex; flex-direction: column; gap: 15px; margin-top:20px; }
+.tweet { background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.tweet-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.comment { font-size: 0.9em; color: #555; margin-left: 50px; margin-top: 5px; }
+.like-btn { cursor: pointer; background:none; border:none; color:#1da1f2; margin-bottom:5px; }
+</style>
+
+<script>
+const inputAvatar = document.querySelector('input[name="avatar"]');
+const previewImg = document.querySelector('.avatar-preview');
+
+inputAvatar.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// AJAX para comentar sem sair da página
+document.querySelectorAll('.comment-form').forEach(form => {
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const tweetId = this.dataset.tweetId;
+        const contentInput = this.querySelector('input[name="content"]');
+        const content = contentInput.value.trim();
+        if(!content) return;
+
+        const csrfToken = this.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+        fetch(`/tweet/${tweetId}/comment/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `content=${encodeURIComponent(content)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            const commentsDiv = document.getElementById(`comments-${tweetId}`);
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.innerHTML = `<strong>${data.username}:</strong> ${data.content}`;
+            commentsDiv.appendChild(newComment);
+            contentInput.value = '';
+        })
+        .catch(() => alert('Erro ao enviar comentário.'));
+    });
+});
+
+// AJAX para likes sem recarregar
+document.querySelectorAll('.like-btn').forEach(button => {
+    button.addEventListener('click', function(){
+        const tweetId = this.dataset.tweetId;
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const likeCountSpan = this.querySelector('.like-count');
+
+        fetch(`/tweet/${tweetId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            likeCountSpan.textContent = data.likes_count;
+        })
+        .catch(() => alert('Erro ao curtir.'));
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,197 @@
+/* Reset básico */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+/* Corpo ocupa toda a tela */
+html, body { height: 100%; background: #e6ecf0; }
+
+/* Container da página */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+header .page-title { 
+    color: #1da1f2; 
+    font-size: 2em; 
+    text-align: center; /* centralizado em relação aos cards */
+}
+
+/* Navegação (Login/Register no canto direito) */
+.top-nav { display: flex; gap: 15px; }
+.top-nav a {
+    text-decoration: none;
+    color: #1da1f2;
+    font-weight: bold;
+}
+.top-nav a:hover { text-decoration: underline; }
+
+/* Main ocupa espaço restante */
+main { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+/* Formulários */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    max-width: 400px;
+    width: 100%;
+    align-self: center;
+    background: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.form-container h2 {
+    margin-bottom: 15px;
+    color: #1da1f2;
+}
+.form-container input, .form-container button, .form-container textarea {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    width: 100%;
+}
+.form-container textarea { resize: vertical; }
+.form-container input:focus, .form-container textarea:focus { border-color: #1da1f2; outline: none; }
+.form-container button {
+    background-color: #1da1f2;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.form-container button:hover { background-color: #0d95e8; }
+
+/* Preview de imagens */
+#avatarPreview, #tweetImagePreview {
+    display: block;
+    margin-top: 10px;
+    border-radius: 10px;
+    max-width: 100%;
+}
+
+/* Feed e tweets como cards */
+.tweets {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+.tweets .tweet {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.tweets .tweet-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.tweets .tweet .tweet-image { max-width: 100%; border-radius: 10px; }
+
+/* Comentários */
+.comment {
+    font-size: 0.9em;
+    color: #555;
+    margin-left: 50px;
+    margin-top: 5px;
+    padding: 8px 12px;
+    background: #f5f8fa;
+    border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Form de comentário */
+.tweets form {
+    display: flex;
+    gap: 10px;
+    margin-left: 50px;
+    margin-top: 5px;
+}
+.tweets form input[type="text"] {
+    flex: 1;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+}
+.tweets form button {
+    border-radius: 20px;
+    padding: 8px 12px;
+    background-color: #1da1f2;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.tweets form button:hover { background-color: #0d95e8; }
+
+/* Avatares */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Perfil stats */
+.profile-stats span { font-weight: bold; margin: 0 5px; }
+
+/* Mensagens do Django */
+.messages {
+    list-style: none;
+    margin-bottom: 10px;
+    padding: 0;
+}
+.messages .message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+}
+.messages .message.success { background-color: #d4edda; color: #155724; }
+.messages .message.error { background-color: #f8d7da; color: #721c24; }
+.messages .message.info { background-color: #d1ecf1; color: #0c5460; }
+
+/* Footer fixo */
+footer {
+    text-align: center;
+    padding: 15px 0;
+    font-size: 0.9em;
+    color: #555;
+    border-top: 1px solid #ccc;
+    margin-top: 20px;
+}
+
+/* Responsividade */
+@media screen and (max-width: 768px) {
+    .page-container { padding: 10px; }
+    header { flex-direction: column; align-items: center; gap: 10px; }
+    .tweets .tweet { padding: 10px; }
+    .comment { margin-left: 40px; }
+    .tweets form { margin-left: 40px; }
+}
+@media screen and (max-width: 480px) {
+    header .page-title { font-size: 1.5em; }
+    .top-nav a { font-size: 0.9em; }
+    .avatar { width: 35px; height: 35px; }
+}
