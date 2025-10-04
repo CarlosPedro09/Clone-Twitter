@@ -82,7 +82,7 @@ def profile_view(request, username=None):
         avatar_file = request.FILES.get("avatar")
 
         if new_username and new_username != profile_user.username:
-            if User.objects.filter(username=new_username).exists():
+            if User.objects.filter(username=new_username).exclude(pk=profile_user.pk).exists():
                 messages.error(request, "Nome de usuário já está em uso.")
             else:
                 profile_user.username = new_username
@@ -91,6 +91,7 @@ def profile_view(request, username=None):
             profile_user.set_password(new_password)
 
         if avatar_file:
+            # Cloudinary já vai salvar automaticamente se estiver ativo
             profile_user.avatar = avatar_file
 
         profile_user.save()
@@ -104,13 +105,23 @@ def profile_view(request, username=None):
     followers_count = User.objects.filter(following=profile_user).count()  # quem segue o usuário
     following_count = profile_user.following.count() if hasattr(profile_user, "following") else 0  # quem o usuário segue
 
-    # Preparar tweets com comentários
+    # Preparar tweets com comentários e URL do avatar
     tweets_with_comments = []
     for tweet in tweets:
         comments = tweet.comment_set.all().order_by("created_at") if hasattr(tweet, "comment_set") else []
+
+        # Adicionar URL do avatar do usuário que postou o tweet
+        if tweet.user.avatar:
+            avatar_url = tweet.user.avatar.url
+        else:
+            from django.templatetags.static import static
+            avatar_url = static("default-avatar.png")
+
         tweets_with_comments.append({
             "tweet": tweet,
-            "comments": comments
+            "comments": comments,
+            "avatar_url": avatar_url,
+            "is_following": request.user.following.filter(pk=tweet.user.pk).exists()
         })
 
     return render(request, "tweets/profile.html", {

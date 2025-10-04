@@ -10,7 +10,7 @@ from django.conf import settings
 def home(request):
     # Criar tweet
     if request.method == "POST" and "content" in request.POST:
-        content = request.POST.get("content")
+        content = request.POST.get("content").strip()
         if content:
             Tweet.objects.create(user=request.user, content=content)
             messages.success(request, "Seu tweet foi publicado com sucesso!")
@@ -22,11 +22,14 @@ def home(request):
     for tweet in tweets:
         avatar_url = tweet.user.avatar.url if tweet.user.avatar else settings.STATIC_URL + "default-avatar.png"
         is_following = tweet.user in request.user.following.all()
+        # Comentários usando related_name definido no model
+        comments = tweet.comment_set.all().order_by("created_at")  # ou tweet.comments.all() se related_name="comments"
+
         tweets_with_avatar.append({
             "tweet": tweet,
             "avatar_url": avatar_url,
             "is_following": is_following,
-            "comments": tweet.comments.all().order_by("created_at")  # <-- Usando related_name
+            "comments": comments
         })
 
     return render(request, "tweets/home.html", {"tweets": tweets_with_avatar})
@@ -50,7 +53,7 @@ def like_tweet(request, tweet_id):
 def comment_tweet(request, tweet_id):
     tweet = get_object_or_404(Tweet, id=tweet_id)
     if request.method == "POST":
-        content = request.POST.get("content")
+        content = request.POST.get("content", "").strip()
         if content:
             comment = Comment.objects.create(tweet=tweet, user=request.user, content=content)
             

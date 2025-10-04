@@ -28,7 +28,8 @@
             {% for item in tweets %}
                 <div class="tweet">
                     <div class="tweet-header">
-                        <img src="{{ item.avatar_url }}" class="avatar">
+                        <img src="{{ item.avatar_url }}" 
+                             class="avatar" data-username="{{ item.tweet.user.username }}">
                         <strong>{{ item.tweet.user.username }}</strong>
                         <span class="tweet-date">{{ item.tweet.created_at|date:"d/m/Y H:i" }}</span>
 
@@ -117,7 +118,7 @@
 }
 </style>
 
-<!-- AJAX para likes e comentários -->
+<!-- AJAX para likes, comentários e atualização de avatar -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     // Likes
@@ -173,6 +174,22 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(() => alert('Erro ao enviar comentário.'));
         });
     });
+
+    // Atualiza avatars do usuário logado no feed (se existir input-avatar no profile)
+    const inputAvatar = document.getElementById('input-avatar');
+    if(inputAvatar){
+        inputAvatar.addEventListener('change', function() {
+            const file = this.files[0];
+            if(file){
+                const reader = new FileReader();
+                reader.onload = function(e){
+                    document.querySelectorAll(`.avatar[data-username="{{ user.username }}"]`)
+                        .forEach(img => img.src = e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

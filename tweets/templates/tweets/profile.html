@@ -10,7 +10,7 @@
         <!-- Preview do avatar -->
         <div class="avatar-container">
             <img src="{% if profile_user.avatar %}{{ profile_user.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}" 
-                 class="avatar-preview" id="avatar-preview">
+                 class="avatar-preview" id="avatar-preview" data-username="{{ profile_user.username }}">
         </div>
 
         <!-- Botão para escolher arquivo -->
@@ -36,7 +36,7 @@
     <div class="tweet" id="tweet-{{ item.tweet.id }}">
         <div class="tweet-header">
             <img src="{% if item.tweet.user.avatar %}{{ item.tweet.user.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}" 
-                 class="avatar">
+                 class="avatar" data-username="{{ item.tweet.user.username }}">
             <strong>{{ item.tweet.user.username }}</strong>
         </div>
 
@@ -161,9 +161,8 @@ inputAvatar.addEventListener('change', function() {
             previewImg.src = e.target.result;
 
             // Atualiza todos os avatars do feed do usuário logado
-            document.querySelectorAll(`.tweet-header img`).forEach(img => {
-                const usernameElem = img.nextElementSibling;
-                if(usernameElem && usernameElem.textContent === "{{ profile_user.username }}"){
+            document.querySelectorAll('.tweet-header img').forEach(img => {
+                if(img.dataset.username === "{{ profile_user.username }}"){
                     img.src = e.target.result;
                 }
             });

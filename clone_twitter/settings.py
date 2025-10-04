@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 import dj_database_url
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 # ----------------------------------
 # BASE DIRECTORY
@@ -31,7 +34,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "cloudinary",
-    "django_cloudinary_storage",
     "users",
     "tweets",
 ]
@@ -126,18 +128,19 @@ if DEBUG:
     MEDIA_ROOT = BASE_DIR / "media"
     MEDIA_URL = "/media/"
 else:
-    # Opção 1: Disco Persistente do Render
     MEDIA_ROOT = Path("/mnt/media")
     MEDIA_URL = "/media/"
 
-# Se quiser Cloudinary em produção (melhor para avatars)
+# ----------------------------------
+# CLOUDINARY CONFIG (produção)
+# ----------------------------------
 if not DEBUG:
-    DEFAULT_FILE_STORAGE = "django_cloudinary_storage.storage.MediaCloudinaryStorage"
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-        'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-        'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-    }
+    cloudinary.config(
+        cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        api_key=os.environ.get('CLOUDINARY_API_KEY'),
+        api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
+        secure=True
+    )
 
 # ----------------------------------
 # DEFAULT AUTO FIELD
